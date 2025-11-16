@@ -16,7 +16,7 @@ def get_due_content(db: Session) -> List[Content]:
     due_content = (
         db.query(Content)
         .filter(
-            Content.status == ContentStatus.PENDING,
+            Content.status == ContentStatus.PENDING.value,
             Content.scheduled_at <= now
         )
         .all()

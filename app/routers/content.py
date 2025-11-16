@@ -38,7 +38,7 @@ def list_content(
     if topic_id is not None:
         query = query.filter(Content.topic_id == topic_id)
     if status is not None:
-        query = query.filter(Content.status == status)
+        query = query.filter(Content.status == status.value)
     
     content_list = query.order_by(Content.scheduled_at).offset(skip).limit(limit).all()
     return content_list

@@ -61,9 +61,23 @@ class Content(Base):
     title = Column(String(255), nullable=True)
     body = Column(Text, nullable=False)
     scheduled_at = Column(DateTime(timezone=True), nullable=False, index=True)
-    status = Column(SQLEnum(ContentStatus, native_enum=True), default=ContentStatus.PENDING, nullable=False, index=True)
+    status = Column(
+        SQLEnum(
+            ContentStatus,
+            name="contentstatus",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+            native_enum=True,
+        ),
+        default=ContentStatus.PENDING,
+        nullable=False,
+        index=True,
+    )
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
     sent_at = Column(DateTime(timezone=True), nullable=True)
     error_message = Column(Text, nullable=True)
 

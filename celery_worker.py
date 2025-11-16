@@ -1,5 +1,5 @@
 """
-celery worker configurations
+Celery worker configuration for Newsletter Service
 """
 
 import os
@@ -7,31 +7,32 @@ from celery import Celery
 from celery.schedules import crontab
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
-celery = Celery(__name__)
-celery.conf.broker_url = os.getenv("CELERY_BROKER_URL")
-celery.conf.result_backend = os.getenv("CELERY_RESULT_BACKEND")
-celery.conf.beat_scheduler = "redbeat.RedBeatScheduler"
-celery.conf.redbeat_redis_url = os.getenv("CELERY_REDBEAT_REDIS_URL")
-celery.conf.redbeat_key_prefix = os.getenv("CELERY_REDBEAT_KEY_PREFIX", "redbeat:")
+celery = Celery("newsletter_service")
+celery.conf.broker_url = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+celery.conf.result_backend = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/1")
 
-# RedBeat Settings
-celery.conf.redbeat_lock_timeout = 600  # 10 minutes in seconds
-celery.conf.redbeat_lock_key = f"{celery.conf.redbeat_key_prefix}lock"
-celery.conf.redbeat_retry_period = 300  # 5 minutes
-celery.conf.redbeat_lock_retry = True  # Enable lock retry
-celery.conf.redbeat_max_retries = 3  # Maximum number of retries
+# Use RedBeat scheduler if available, otherwise use default
+redbeat_redis_url = os.getenv("CELERY_REDBEAT_REDIS_URL")
+if redbeat_redis_url:
+    celery.conf.beat_scheduler = "redbeat.RedBeatScheduler"
+    celery.conf.redbeat_redis_url = redbeat_redis_url
+    celery.conf.redbeat_key_prefix = os.getenv("CELERY_REDBEAT_KEY_PREFIX", "redbeat:")
+    celery.conf.redbeat_lock_timeout = 600
+    celery.conf.redbeat_lock_key = f"{celery.conf.redbeat_key_prefix}lock"
+    celery.conf.redbeat_retry_period = 300
+    celery.conf.redbeat_lock_retry = True
+    celery.conf.redbeat_max_retries = 3
 
 # Task discovery
-celery.autodiscover_tasks([])
+celery.autodiscover_tasks(["app.tasks"])
 
-# Beat Schedule
+# Beat Schedule - Check for due content every minute
 celery.conf.beat_schedule = {
-    "process_unread_emails": {
-        "task": "",
-        "schedule": crontab(minute="*/30"),
+    "check-due-content": {
+        "task": "app.tasks.check_due_content",
+        "schedule": crontab(minute="*"),  # Every minute
     }
 }
 

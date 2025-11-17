@@ -29,7 +29,7 @@ class TopicResponse(TopicBase):
 
 
 class SubscriberBase(BaseModel):
-    email: EmailStr
+    email: str
 
 
 class SubscriberCreate(SubscriberBase):
@@ -99,5 +99,3 @@ class ContentResponse(ContentBase):
 
     class Config:
         from_attributes = True
-
-

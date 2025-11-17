@@ -89,7 +89,7 @@ docker-compose exec web pytest --cov=app tests/
 
 ### Base URL
 - Local: `http://localhost:8000`
-- Production: `https://your-railway-app.railway.app`
+- Production: `https://newsletterservice-production.up.railway.app`
 
 ### Endpoints
 
